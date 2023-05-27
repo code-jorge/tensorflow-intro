@@ -11,6 +11,7 @@ const App = ()=> {
   // Webcam capturing
   const [isVideoActive, setVideoActive] = useState(false)
   const [videoStatus, setVideoStatus] = useState('')
+  const [isVideoPlaying, setVideoPlaying] = useState(false)
   const [aspectRatio, setAspectRatio] = useState(0)
 
   // Tensor flow capturing
@@ -42,7 +43,7 @@ const App = ()=> {
     navigator.mediaDevices.getUserMedia({ video: true })
       .then(stream => {
         videoRef.current.srcObject = stream
-        setVideoStatus('Video stream available.')
+        setVideoStatus('Video stream ready.')
         setVideoActive(true)
       })
       .catch(() => {
@@ -61,12 +62,21 @@ const App = ()=> {
   }, [])
 
   useEffect(()=> {
-    if (!isVideoActive || !model) return
+    const video = videoRef.current
+    const onPlay = ()=> setVideoPlaying(true)
+    video.addEventListener('play', onPlay)
+    return ()=> {
+      video.removeEventListener('play', onPlay)
+    }
+  }, [isVideoActive])
+
+  useEffect(()=> {
+    if (!isVideoPlaying || !model) return
     const video = videoRef.current
     const canvas = canvasRef.current
     const ratio = establishDimensions({ video, canvas })
-    if (ratio) setAspectRatio(ratio)
-  }, [isVideoActive, model])
+    if (Number.isFinite(ratio)) setAspectRatio(ratio)
+  }, [isVideoPlaying, model])
 
   useEffect(()=> {
     if (!isVideoActive || !model || !aspectRatio) return
@@ -103,7 +113,9 @@ const App = ()=> {
           <h2 data-font="code" className={css.footerTitle}>
             <span className={css.footerStatus}>
               {logs.map((log, index)=> (
-                <span className={css.footerStatusItem} key={index}>{log.status}</span>
+                <span className={css.footerStatusItem} key={index}>
+                  {log.status}
+                </span>
               ))}
             </span>
             Logs
