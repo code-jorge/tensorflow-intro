@@ -115,10 +115,10 @@ const App = ()=> {
         {expanded &&  (
           <div className={css.logs}>
             {logs.map((log, index) => (
-              <div key={index} className={css.log}>
+              <p key={index} className={css.log}>
                 <span className={css.logStatus}>{log.status}</span>
                 <span data-font="code" className={css.message}>{log.message}</span>
-              </div>
+              </p>
             ))}
           </div>
         )}
